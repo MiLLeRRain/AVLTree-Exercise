@@ -191,8 +191,10 @@ public class AVLTreeV1{ //<PersonNode extends Comparable<? super PersonNode>>
      * @param p   is the new Person need to be inserted
      */
     public void insert(String key, Person p) {
-        root = insert(root, key);
         newPerson = p; // Assign the new Person p to the helper field
+        root = insert(root, key);
+        // After tree is updated or not because it is already there, insert the new Person.
+        insertPersonToNode(key, newPerson);
         size++;
     }
 
@@ -226,9 +228,9 @@ public class AVLTreeV1{ //<PersonNode extends Comparable<? super PersonNode>>
                     else pn = RLRotation(pn);
                 }
             }
-            // After tree is updated or not because it is already there, insert the new Person.
-            insertPersonToNode(key, newPerson);
         }
+
+        pn.depth = Math.max(depth(pn.left), depth(pn.right)) + 1;
 
         return pn;
     }
@@ -241,7 +243,7 @@ public class AVLTreeV1{ //<PersonNode extends Comparable<? super PersonNode>>
      */
     private void insertPersonToNode(String key, Person p) {
         PersonNode pn = search(key);
-        pn.insertPerson(p);
+        if (pn != null) pn.insertPerson(p);
     }
 
     /**

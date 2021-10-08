@@ -18,3 +18,5 @@
 Search for Person(1. search the PersonNode, by name or surname, 2. search the person with id),
 if found, bring up new tab?
 if not, feedback
+
+graphicsContainer is an AnchorPane setTopAnchor(pn, 100) setLeftAnchor(pn, 100)

@@ -40,10 +40,6 @@ class PersonNode extends MenuButton implements Comparable<PersonNode> {
         return this.box.size() == 0;
     }
 
-    public int getDepth() {
-        return depth;
-    }
-
     public HashMap<Integer, Person> getBox() {
         return box;
     }
@@ -63,6 +59,11 @@ class PersonNode extends MenuButton implements Comparable<PersonNode> {
     @Override
     public int compareTo(PersonNode o) {
         return this.key.compareTo(o.key);
+    }
+
+    @Override
+    public String toString() {
+        return this.key + " | Size: " + box.size() + " | Depth: " + this.depth;
     }
 
     public void updateText() {

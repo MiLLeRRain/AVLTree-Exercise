@@ -7,11 +7,10 @@ class Person extends MenuItem {
     String surname;
     int ID;
 
-    public Person(String n, int uid) {
-        this.fullName = n;
-        String[] fName = fullName.split("\\s+");
-        this.name = fName[0];
-        this.surname = fName[1];
+    public Person(String fn, String sn, int uid) {
+        this.name = fn;
+        this.surname = sn;
+        this.fullName = fn + " " + sn;
         this.ID = uid;
     }
 
@@ -33,7 +32,7 @@ class Person extends MenuItem {
 
     @Override
     public String toString() {
-        return this.name + " " + this.surname + " | ID: " + this.ID;
+        return this.fullName + " | ID: " + this.ID;
     }
 
     @Override
