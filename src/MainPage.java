@@ -9,8 +9,6 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.StrokeLineCap;
-import javafx.scene.web.WebView;
-import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
@@ -39,7 +37,7 @@ public class MainPage extends Pane {
 
     private Stage primaryStage;
 
-    private VBox mainContainer;
+    private static VBox mainContainer;
 
     private static AnchorPane graphicsContainer;
 
@@ -58,6 +56,7 @@ public class MainPage extends Pane {
     private static double midX = 900;
 
     private HBox loadingPattern;
+
     /**
      * Booleans
      */
@@ -72,13 +71,6 @@ public class MainPage extends Pane {
     private Button insertBtn;
     private Button cleanBtn;
 
-    /**
-     * Button to reload
-     */
-    private Button reload;
-
-
-
     public MainPage(Stage stage) {
         pTree = new AVLTreeV1();
         primaryStage = stage;
@@ -90,16 +82,20 @@ public class MainPage extends Pane {
         mainContainer.prefWidthProperty().bind(this.widthProperty());
         mainContainer.prefHeightProperty().bind(this.heightProperty());
 
-        graphicsContainer = new AnchorPane();
-        graphicsContainer.prefHeightProperty().bind(mainContainer.heightProperty());
-        graphicsContainer.prefWidthProperty().bind(mainContainer.widthProperty());
-        graphicsContainer.setStyle("-fx-background-color: #E3F2FD");
+        setupGraphicPane();
 
         menu = setMenu();
 
         mainContainer.getChildren().addAll(graphicsContainer, menu);
 
         this.getChildren().add(mainContainer);
+    }
+
+    private void setupGraphicPane() {
+        graphicsContainer = new AnchorPane();
+        graphicsContainer.prefHeightProperty().bind(mainContainer.heightProperty());
+        graphicsContainer.prefWidthProperty().bind(mainContainer.widthProperty());
+        graphicsContainer.setStyle("-fx-background-color: #E3F2FD");
     }
 
     private HBox setMenu() {
