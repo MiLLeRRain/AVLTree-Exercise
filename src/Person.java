@@ -1,17 +1,32 @@
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.scene.control.MenuItem;
 
 class Person extends MenuItem {
 
-    String fullName;
-    String name;
-    String surname;
-    int ID;
+    private String fullName;
+    private String name;
+    private String surname;
+    private String key;
+    private final int ID;
 
-    public Person(String fn, String sn, int uid) {
+    public Person(String fn, String sn, int uid, String key) {
         this.name = fn;
         this.surname = sn;
         this.fullName = fn + " " + sn;
         this.ID = uid;
+        this.key = key;
+        this.setText(this.toString());
+        setupAction();
+    }
+
+    private void setupAction() {
+        this.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent actionEvent) {
+                MainPage.personDialog(key, ID);
+            }
+        });
     }
 
     public String getName() {
@@ -20,6 +35,10 @@ class Person extends MenuItem {
 
     public String getSurname() {
         return surname;
+    }
+
+    public int getID() {
+        return ID;
     }
 
     public void setName(String name) {
@@ -33,17 +52,6 @@ class Person extends MenuItem {
     @Override
     public String toString() {
         return this.fullName + " | ID: " + this.ID;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        return o instanceof Person
-                && (this.fullName + this.ID).equals(((Person) o).fullName + ((Person) o).fullName);
-    }
-
-    @Override
-    public int hashCode() {
-        return (this.fullName + this.ID).hashCode();
     }
 
 }

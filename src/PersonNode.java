@@ -1,6 +1,7 @@
-import javafx.scene.control.MenuButton;
-
-import java.util.HashMap;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
+import javafx.geometry.Pos;
+import javafx.scene.control.*;
 
 /**
  * It is a node, also a VBox holding an arraylist of persons.
@@ -9,39 +10,62 @@ import java.util.HashMap;
  */
 class PersonNode extends MenuButton implements Comparable<PersonNode> {
 
-    /**
-     * A box to hold all person with same key
-     */
-    HashMap<Integer, Person> box;
-    int depth;
+//    /**
+//     * A box to hold all person with same key
+//     */
+//    HashMap<Integer, Person> box;
+    int weight;
     String key;
+    Button edit;
+
+    final int BUTTON_WIDTH = 90;
 
     PersonNode left;
     PersonNode right;
 
     public PersonNode(String key, PersonNode l, PersonNode r) {
         this.key = key;
-        this.box = new HashMap<>();
-        this.setText(key); // Set the Menu Text, shows the key
+//        this.box = new HashMap<>();
+//        this.setText(key); // Set the Menu Text, shows the key
         this.left = l;
         this.right = r;
-        this.depth = 0; // Empty Root node height = 0
+        this.weight = 0; // Empty Root node height = 0
+//        this.setPrefWidth(BUTTON_WIDTH);
+        this.setAlignment(Pos.CENTER);
+        this.edit = buttonSet();
+        this.setGraphic(edit); // Put the button into MenuButton panel
+        this.setStyle("-fx-background-color: rgba(255, 255, 255, 0);" + "-fx-selection-bar: #ffffff00;");
     }
 
-    public Person insertPerson(Person p) {
-        return box.put(p.ID, p);
+    private Button buttonSet() {
+        Button toReturn = new Button(key);
+        toReturn.setPrefWidth(BUTTON_WIDTH-20);
+        toReturn.setTooltip(new Tooltip(key));
+        toReturn.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent actionEvent) {
+                popAlert();
+            }
+        });
+
+        return toReturn;
     }
 
-    public Person removePerson(Person p) {
-        return box.remove(p.ID);
+    private void popAlert() {
+        MainPage.nodeDialog(key);
+    }
+
+    public Boolean insertPerson(Person p) {
+        return this.getItems().add(p);
+//        return box.put(p.ID, p);
+    }
+
+    public Boolean removePerson(Person p) {
+        return this.getItems().remove(p);
     }
 
     public boolean isEmpty() {
-        return this.box.size() == 0;
-    }
-
-    public HashMap<Integer, Person> getBox() {
-        return box;
+        return this.getItems().isEmpty();
     }
 
     public String getKey() {
@@ -56,6 +80,14 @@ class PersonNode extends MenuButton implements Comparable<PersonNode> {
         return right;
     }
 
+    public Person getPerson(int ID) {
+        Person p = null;
+        for (MenuItem mi : this.getItems()) {
+            if (((Person) mi).getID() == ID) p = (Person) mi;
+        }
+        return p;
+    }
+
     @Override
     public int compareTo(PersonNode o) {
         return this.key.compareTo(o.key);
@@ -63,7 +95,8 @@ class PersonNode extends MenuButton implements Comparable<PersonNode> {
 
     @Override
     public String toString() {
-        return this.key + " | Size: " + box.size() + " | Depth: " + this.depth;
+//        return this.key + " | Size: " + this.getItems().size() + " | Weight: " + this.weight;
+        return this.key + " | Size: " + this.getItems().size();
     }
 
     public void updateText() {

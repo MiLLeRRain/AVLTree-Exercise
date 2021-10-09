@@ -16,13 +16,14 @@ public class PersonManagement extends Application {
     /**
      * Containers for contents holding
      */
-    private Pane root = new Pane();
+    private static Pane root = new Pane();
     private TabPane tabRoot;
-
 
     @Override
     public void start(Stage stage) throws Exception {
+        stage.setTitle("Personal Info Hub");
         PersonManagement.primaryStage = stage;
+        PersonManagement.primaryStage.setResizable(true); // TODO for testing
 
         root = new MainPage(primaryStage);
 
@@ -32,10 +33,14 @@ public class PersonManagement extends Application {
         Scene scene = new Scene(root);
         primaryStage.setScene(scene);
         primaryStage.setWidth(1900);
-        primaryStage.setHeight(1000);
+        primaryStage.setHeight(600);
         primaryStage.setAlwaysOnTop(false);
         primaryStage.show();
 
+    }
+
+    public static Pane getRoot() {
+        return root;
     }
 
     public static void main(String[] args) {launch(args);}

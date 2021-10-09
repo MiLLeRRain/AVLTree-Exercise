@@ -1,5 +1,3 @@
-import javafx.scene.control.TabPane;
-
 /**
  * It is an AVL Tree, <PersonNode> is the Node here.
  */
@@ -26,16 +24,20 @@ public class AVLTreeV1{ //<PersonNode extends Comparable<? super PersonNode>>
         this.size = 0;
     }
 
+    public PersonNode getRoot() {
+        return root;
+    }
+
     /**
      * Obtain the tree height, using depth because this Node is a VBox has its own height
      * No empty tree root at height 1, empty tree height = 0.
      */
-    private int depth() {
-        return depth(root);
+    private int weight() {
+        return weight(root);
     }
 
-    private int depth(PersonNode node) {
-        if (node != null) return node.depth;
+    private int weight(PersonNode node) {
+        if (node != null) return node.weight;
         return 0;
     }
 
@@ -129,8 +131,8 @@ public class AVLTreeV1{ //<PersonNode extends Comparable<? super PersonNode>>
         pn1.right = pn2;
 
         // Update depth/height of two nodes.
-        pn2.depth = Math.max(depth(pn2.left), depth(pn2.right)) + 1;
-        pn1.depth = Math.max(depth(pn1.left), pn2.depth) + 1;
+        pn2.weight = Math.max(weight(pn2.left), weight(pn2.right)) + 1;
+        pn1.weight = Math.max(weight(pn1.left), pn2.weight) + 1;
 
         return pn1;
     }
@@ -152,8 +154,8 @@ public class AVLTreeV1{ //<PersonNode extends Comparable<? super PersonNode>>
         pn2.left = pn1;
 
         // Update depth/height of two nodes.
-        pn1.depth = Math.max(depth(pn1.left), depth(pn1.right)) + 1;
-        pn2.depth = Math.max(depth(pn2.right), pn1.depth) + 1;
+        pn1.weight = Math.max(weight(pn1.left), weight(pn1.right)) + 1;
+        pn2.weight = Math.max(weight(pn2.right), pn1.weight) + 1;
 
         return pn2;
     }
@@ -192,8 +194,8 @@ public class AVLTreeV1{ //<PersonNode extends Comparable<? super PersonNode>>
      */
     public void insert(String key, Person p) {
         newPerson = p; // Assign the new Person p to the helper field
-        root = insert(root, key);
-        // After tree is updated or not because it is already there, insert the new Person.
+        root = insert(root, key); // Insert the Node
+        // After tree was updated or not because the Node was already there, insert the new Person.
         insertPersonToNode(key, newPerson);
         size++;
     }
@@ -216,21 +218,21 @@ public class AVLTreeV1{ //<PersonNode extends Comparable<? super PersonNode>>
             if (direction < 0) { // Enter left branch
                 pn.left = insert(pn.left, key);
                 // If left branch is too heavy, deal with LLR or LRR situation
-                if (depth(pn.left) - depth(pn.right) == 2) {
+                if (weight(pn.left) - weight(pn.right) == 2) {
                     if (key.compareTo(pn.left.key) < 0) pn = LLRotation(pn);
                     else pn = LRRotation(pn);
                 }
             } else if (direction > 0) { // Enter right branch
                 pn.right = insert(pn.right, key);
                 // If right branch is too heavy, deal with RRR or RLR situation
-                if (depth(pn.right) - depth(pn.left) == 2) {
+                if (weight(pn.right) - weight(pn.left) == 2) {
                     if (key.compareTo(pn.right.key) > 0) pn = RRRotation(pn);
                     else pn = RLRotation(pn);
                 }
             }
         }
 
-        pn.depth = Math.max(depth(pn.left), depth(pn.right)) + 1;
+        pn.weight = Math.max(weight(pn.left), weight(pn.right)) + 1;
 
         return pn;
     }
@@ -247,7 +249,7 @@ public class AVLTreeV1{ //<PersonNode extends Comparable<? super PersonNode>>
     }
 
     /**
-     * Remove the person the user wants.
+     * Remove the person the user wants from the Node.
      *
      * @param key is the key of the targeting PersonNode
      * @param p   is the person need to be removed
@@ -258,11 +260,21 @@ public class AVLTreeV1{ //<PersonNode extends Comparable<? super PersonNode>>
         if (target != null) {
             // Remove the Person p from the Node box.
             // If successful and the box is now empty, remove this node, maintain the Tree.
-            if (target.removePerson(p) != null && target.isEmpty()) {
+            target.removePerson(p);
+            if (target.isEmpty()) {
                 root = remove(root, target);
             }
             size--;
         }
+    }
+
+    /**
+     * Remove the whole Node.
+     *
+     * @param pn is the Node to be removed
+     */
+    public void removeNode(PersonNode pn) {
+        if (pn != null) root = remove(root, pn);
     }
 
     /**
@@ -272,30 +284,30 @@ public class AVLTreeV1{ //<PersonNode extends Comparable<? super PersonNode>>
      * @param target is the targeting PersonNode
      * @return the Node after maintenance, and the root Node at final step recursion.
      */
-    private PersonNode remove(PersonNode pn, PersonNode target) {
+    private PersonNode remove(PersonNode pn, PersonNode target) throws NullPointerException {
         if (pn == null) return null;
 
         int direction = target.compareTo(pn);
         if (direction < 0) { // Enter left branch
             pn.left = remove(pn.left, target);
             // If right branch is too heavy, deal with RLR or RRR situation
-            if (depth(pn.right) - depth(pn.left) == 2) {
+            if (weight(pn.right) - weight(pn.left) == 2) {
                 PersonNode pnr = pn.left;
-                if (depth(pnr.left) > depth(pnr.right)) pn = RLRotation(pn);
+                if (weight(pnr.left) > weight(pnr.right)) pn = RLRotation(pn);
                 else pn = RRRotation(pn);
             }
         } else if (direction > 0) { // Enter right branch
             pn.right = remove(pn.right, target);
             // If left branch is too heavy, deal with LRR or LLR situation
-            if (depth(pn.left) - depth(pn.right) == 2) {
+            if (weight(pn.left) - weight(pn.right) == 2) {
                 PersonNode pnl = pn.right;
-                if (depth(pnl.right) > depth(pnl.left)) pn = LRRotation(pn);
+                if (weight(pnl.right) > weight(pnl.left)) pn = LRRotation(pn);
                 else pn = LLRotation(pn);
             }
         } else { // At the target
             if (pn.left != null && pn.right != null) {
                 // Find the node with max key on the left side, replace the target with it.
-                if (depth(pn.left) > depth(pn.right)) {
+                if (weight(pn.left) > weight(pn.right)) {
                     PersonNode max = findMax(pn.left);
                     pn.key = max.key;
                     pn.updateText();
@@ -325,12 +337,8 @@ public class AVLTreeV1{ //<PersonNode extends Comparable<? super PersonNode>>
      */
     private PersonNode findMax(PersonNode pn) {
         if (pn == null) return null;
-        PersonNode toReturn = pn.right;
-        while (toReturn.right != null) {
-            toReturn = toReturn.right;
-
-        }
-        return toReturn;
+        else if (pn.right == null) return pn;
+        return findMax(pn.right);
     }
 
     /**
@@ -340,11 +348,8 @@ public class AVLTreeV1{ //<PersonNode extends Comparable<? super PersonNode>>
      */
     private PersonNode findMin(PersonNode pn) {
         if (pn == null) return null;
-        PersonNode toReturn = pn.left;
-        while (toReturn.left != null) {
-            toReturn = toReturn.left;
-        }
-        return toReturn;
+        else if (pn.left == null) return pn;
+        return findMin(pn.left);
     }
 
     /**
