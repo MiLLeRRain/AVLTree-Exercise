@@ -16,12 +16,15 @@ public class AVLTreeV1{ //<PersonNode extends Comparable<? super PersonNode>>
      */
     private Person newPerson;
 
+    private MainPage mp;
+
     /**
      * Initialize an empty tree
      */
-    public AVLTreeV1() {
+    public AVLTreeV1(MainPage mp) {
         this.root = null;
         this.size = 0;
+        this.mp = mp;
     }
 
     public PersonNode getRoot() {
@@ -210,7 +213,7 @@ public class AVLTreeV1{ //<PersonNode extends Comparable<? super PersonNode>>
     private PersonNode insert(PersonNode pn, String key) {
         // Make a new tree from pn if its empty.
         if (pn == null) {
-            pn = new PersonNode(key, null, null);
+            pn = new PersonNode(key, null, null, mp);
         }
 
         else {

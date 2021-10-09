@@ -9,14 +9,16 @@ class Person extends MenuItem {
     private String surname;
     private String key;
     private final int ID;
+    private MainPage mp;
 
-    public Person(String fn, String sn, int uid, String key) {
+    public Person(String fn, String sn, int uid, String key, MainPage mp) {
         this.name = fn;
         this.surname = sn;
         this.fullName = fn + " " + sn;
         this.ID = uid;
         this.key = key;
         this.setText(this.toString());
+        this.mp = mp;
         setupAction();
     }
 
@@ -24,7 +26,7 @@ class Person extends MenuItem {
         this.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent actionEvent) {
-                MainPage.personDialog(key, ID);
+                mp.personDialog(key, ID);
             }
         });
     }

@@ -14,6 +14,7 @@ class PersonNode extends MenuButton implements Comparable<PersonNode> {
 //     * A box to hold all person with same key
 //     */
 //    HashMap<Integer, Person> box;
+    MainPage mp;
     int weight;
     String key;
     Button edit;
@@ -23,10 +24,11 @@ class PersonNode extends MenuButton implements Comparable<PersonNode> {
     PersonNode left;
     PersonNode right;
 
-    public PersonNode(String key, PersonNode l, PersonNode r) {
+    public PersonNode(String key, PersonNode l, PersonNode r, MainPage mp) {
         this.key = key;
 //        this.box = new HashMap<>();
 //        this.setText(key); // Set the Menu Text, shows the key
+        this.mp = mp;
         this.left = l;
         this.right = r;
         this.weight = 0; // Empty Root node height = 0
@@ -52,7 +54,7 @@ class PersonNode extends MenuButton implements Comparable<PersonNode> {
     }
 
     private void popAlert() {
-        MainPage.nodeDialog(key);
+        mp.nodeDialog(key);
     }
 
     public Boolean insertPerson(Person p) {

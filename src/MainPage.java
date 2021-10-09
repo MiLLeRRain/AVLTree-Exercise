@@ -9,6 +9,8 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.StrokeLineCap;
+import javafx.scene.web.WebView;
+import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
@@ -33,13 +35,13 @@ public class MainPage extends Pane {
     /**
      * Main structure to hold all data
      */
-    private static AVLTreeV1 pTree;
+    private AVLTreeV1 pTree;
 
     private Stage primaryStage;
 
-    private static VBox mainContainer;
+    private VBox mainContainer;
 
-    private static AnchorPane graphicsContainer;
+    private AnchorPane graphicsContainer;
 
     private HBox menu;
 
@@ -56,11 +58,10 @@ public class MainPage extends Pane {
     private static double midX = 900;
 
     private HBox loadingPattern;
-
     /**
      * Booleans
      */
-    private static boolean surname;
+    private boolean surname;
     private boolean loaded;
 
     /**
@@ -71,8 +72,14 @@ public class MainPage extends Pane {
     private Button insertBtn;
     private Button cleanBtn;
 
+    /**
+     * Button to reload
+     */
+    private Button reload;
+
+
+
     public MainPage(Stage stage) {
-        pTree = new AVLTreeV1();
         primaryStage = stage;
         initUI();
     }
@@ -82,20 +89,16 @@ public class MainPage extends Pane {
         mainContainer.prefWidthProperty().bind(this.widthProperty());
         mainContainer.prefHeightProperty().bind(this.heightProperty());
 
-        setupGraphicPane();
+        graphicsContainer = new AnchorPane();
+        graphicsContainer.prefHeightProperty().bind(mainContainer.heightProperty());
+        graphicsContainer.prefWidthProperty().bind(mainContainer.widthProperty());
+        graphicsContainer.setStyle("-fx-background-color: #E3F2FD");
 
         menu = setMenu();
 
         mainContainer.getChildren().addAll(graphicsContainer, menu);
 
         this.getChildren().add(mainContainer);
-    }
-
-    private void setupGraphicPane() {
-        graphicsContainer = new AnchorPane();
-        graphicsContainer.prefHeightProperty().bind(mainContainer.heightProperty());
-        graphicsContainer.prefWidthProperty().bind(mainContainer.widthProperty());
-        graphicsContainer.setStyle("-fx-background-color: #E3F2FD");
     }
 
     private HBox setMenu() {
@@ -204,13 +207,13 @@ public class MainPage extends Pane {
         in.show();
     }
 
-    public static void displayTree() {
+    public void displayTree() {
         graphicsContainer.getChildren().clear();
         PersonNode root = pTree.getRoot();
         displayHelper(root, 1, midX);
     }
 
-    private static void displayHelper(PersonNode root, int indent, double posX) {
+    private void displayHelper(PersonNode root, int indent, double posX) {
         if (root == null || indent > 6) return; // indent > 5 to stop over-sized plot
 
         String col = "#F57F17";
@@ -233,7 +236,7 @@ public class MainPage extends Pane {
         displayHelper(root.right, indent + 1, posX + midX / (Math.pow(2, indent)));
     }
 
-    private static void makeLine(double posX, int indent, int direction, String col) {
+    private void makeLine(double posX, int indent, int direction, String col) {
         posX = posX + COLUMN_OFFSET;
         double l1Y = ROW_GAP * indent + ROW_OFFSET*2;
         double lXOffset = midX / (Math.pow(2, indent)) * direction;
@@ -284,7 +287,7 @@ public class MainPage extends Pane {
     }
 
     private void loadUpFile() throws FileNotFoundException {
-        pTree = new AVLTreeV1();
+        pTree = new AVLTreeV1(this);
 // TODO for test       FileChooser fc = new FileChooser();
 //        fc.setTitle("Choose a file to open");
 //        File file = fc.showOpenDialog(primaryStage);
@@ -295,26 +298,26 @@ public class MainPage extends Pane {
             String sn = sc.next();
             sc.nextLine();
             // Use different key, toggle by radio button
-            if (surname) pTree.insert(sn, new Person(fn, sn, ++uid, sn));
-            else pTree.insert(fn, new Person(fn, sn, ++uid, fn));
+            if (surname) pTree.insert(sn, new Person(fn, sn, ++uid, sn, this));
+            else pTree.insert(fn, new Person(fn, sn, ++uid, fn, this));
         }
         pTree.preOrder();
         sc.close();
         displayTree();
     }
 
-    public static void remove(String key, Person p) {
+    public void remove(String key, Person p) {
         pTree.remove(key, p);
         displayTree();
     }
 
-    public static void removeNode(PersonNode pn) {
+    public void removeNode(PersonNode pn) {
         pTree.removeNode(pn);
         displayTree();
     }
 
 
-    public static void nodeDialog(String key) {
+    public void nodeDialog(String key) {
         Dialog<ButtonType> nodeEditor = new Dialog<>();
 
         PersonNode showing = pTree.search(key);
@@ -373,7 +376,7 @@ public class MainPage extends Pane {
         });
     }
 
-    public static void personDialog(String key, int ID) {
+    public void personDialog(String key, int ID) {
         Person p = pTree.search(key).getPerson(ID);
         if (p == null) return;
 
@@ -409,12 +412,12 @@ public class MainPage extends Pane {
         pd.show();
     }
 
-    private static void insertPerson(String fullName) {
+    private void insertPerson(String fullName) {
         String[] s = fullName.split("\\s+");
         String fnKey = s[0];
         String snKey = s[1];
-        if (surname) pTree.insert(snKey, new Person(fnKey, snKey, ++uid, snKey));
-        else pTree.insert(fnKey, new Person(fnKey, snKey, ++uid, fnKey));
+        if (surname) pTree.insert(snKey, new Person(fnKey, snKey, ++uid, snKey, this));
+        else pTree.insert(fnKey, new Person(fnKey, snKey, ++uid, fnKey, this));
         displayTree();
     }
 
