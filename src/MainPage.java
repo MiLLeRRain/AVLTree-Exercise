@@ -1,3 +1,5 @@
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
@@ -5,11 +7,11 @@ import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
+import javafx.scene.effect.InnerShadow;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.StrokeLineCap;
-import javafx.scene.web.WebView;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -41,21 +43,23 @@ public class MainPage extends Pane {
 
     private VBox mainContainer;
 
-    private AnchorPane graphicsContainer;
+    private static AnchorPane graphicsContainer;
 
     private HBox menu;
 
     private static int uid = 80000;
 
-    private final int BUTTON_WIDTH = 80;
+    private static final int BUTTON_WIDTH = 80;
 
-    private static final double COLUMN_OFFSET = 45;
+    private static final double COLUMN_OFFSET = 36;
 
-    private static final double ROW_OFFSET = 17;
+    private static final double ROW_OFFSET = 20;
 
     private static final double ROW_GAP = 60;
 
-    private static double midX = 900;
+    private static double midX;
+
+    private int indentLimit = 6;
 
     private HBox loadingPattern;
     /**
@@ -71,49 +75,73 @@ public class MainPage extends Pane {
     private Button displayBtn;
     private Button insertBtn;
     private Button cleanBtn;
+    private MenuButton print;
 
-    /**
-     * Button to reload
-     */
-    private Button reload;
+    private Label status;
 
 
 
     public MainPage(Stage stage) {
+        pTree = new AVLTreeV1(this);
         primaryStage = stage;
         initUI();
     }
 
     private void initUI() {
+        ScrollPane sp = new ScrollPane();
+        sp.prefWidthProperty().bind(this.widthProperty());
+        sp.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+
         mainContainer = new VBox();
         mainContainer.prefWidthProperty().bind(this.widthProperty());
         mainContainer.prefHeightProperty().bind(this.heightProperty());
 
+
+
         graphicsContainer = new AnchorPane();
-        graphicsContainer.prefHeightProperty().bind(mainContainer.heightProperty());
-        graphicsContainer.prefWidthProperty().bind(mainContainer.widthProperty());
-        graphicsContainer.setStyle("-fx-background-color: #E3F2FD");
+        setupGraphicContainer();
 
         menu = setMenu();
 
-        mainContainer.getChildren().addAll(graphicsContainer, menu);
+        sp.setContent(graphicsContainer);
+
+        mainContainer.getChildren().addAll(sp, menu);
 
         this.getChildren().add(mainContainer);
     }
 
+    private void setupGraphicContainer() {
+        status = new Label("Press Load Button to load.");
+        status.setStyle("-fx-background-color: #ffffff00");
+        graphicsContainer.prefHeightProperty().bind(mainContainer.heightProperty());
+        graphicsContainer.prefWidthProperty().bind(mainContainer.widthProperty());
+        graphicsContainer.setStyle("-fx-background-color: #E3F2FD");
+
+        graphicsContainer.getChildren().add(status);
+        graphicsContainer.setBottomAnchor(status, 70.0);
+        graphicsContainer.setLeftAnchor(status, 10.0);
+    }
+
     private HBox setMenu() {
         HBox toReturn = new HBox();
+        toReturn.setEffect(new InnerShadow());
         toReturn.setPadding(new Insets(10));
 // TODO style change later      toReturn.setPrefHeight(100);
         toReturn.prefWidthProperty().bind(mainContainer.widthProperty());
-        toReturn.setStyle("-fx-background-color: #FFFDE7");
-
+        toReturn.setStyle("-fx-background-color: #039BE5;" + "-fx-alignment: CENTER_LEFT");
 
         loadingPattern = loadingZone();
 
         ButtonBar bb = buttonsLoad();
 
-        toReturn.getChildren().addAll(loadingPattern, bb);
+        HBox lbl = new HBox();
+        Label cc = new Label("AVLTree Person Data Management System");
+        cc.setStyle("-fx-background-color: #FFFFFF00");
+        lbl.getChildren().add(cc);
+        lbl.prefWidthProperty().bind(toReturn.widthProperty());
+        lbl.setAlignment(Pos.CENTER_RIGHT);
+
+        toReturn.getChildren().addAll(loadingPattern, bb, lbl);
 
         return toReturn;
     }
@@ -127,12 +155,29 @@ public class MainPage extends Pane {
         ButtonBar toReturn = new ButtonBar();
 
         setupLoadBtn();
-        setupDisplayBtn();
+//        setupDisplayBtn();
         setupInsertBtn();
         setupCleanBtn();
+        setupPrintBtn();
 
-        toReturn.getButtons().addAll(loadBtn, displayBtn, insertBtn, cleanBtn);
+        toReturn.getButtons().addAll(loadBtn, insertBtn, cleanBtn, print);
         return toReturn;
+    }
+
+    private void setupPrintBtn() {
+        print = new MenuButton("Print");
+        print.setTooltip(new Tooltip("Print in Console"));
+        print.setAlignment(Pos.CENTER);
+        print.setPrefWidth(BUTTON_WIDTH);
+        MenuItem preOrder = new MenuItem("Pre-Order Print");
+        MenuItem inOrder = new MenuItem("In-Order Print");
+        MenuItem postOrder = new MenuItem("Post-Order Print");
+
+        preOrder.setOnAction(a -> {if (pTree.getRoot() != null) pTree.preOrder();});
+        inOrder.setOnAction(a -> {if (pTree.getRoot() != null) pTree.inOrder();});
+        postOrder.setOnAction(a -> {if (pTree.getRoot() != null) pTree.postOrder();});
+
+        print.getItems().addAll(preOrder, inOrder, postOrder);
     }
 
     private void setupLoadBtn() {
@@ -142,8 +187,8 @@ public class MainPage extends Pane {
         loadBtn.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent actionEvent) {
-                try {
                     loaded = true;
+                try {
                     loadUpFile();
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();
@@ -183,38 +228,24 @@ public class MainPage extends Pane {
                 if (loaded) {
                     pTree.destroy();
                     graphicsContainer.getChildren().clear();
+                    status.setText("Press Load Button to load.");
+                    graphicsContainer.getChildren().add(status);
                 }
             }
         });
     }
 
-    private void insertDialog() {
-        TextInputDialog in = new TextInputDialog();
-        in.getEditor().setPromptText("Enter the Name");
-        in.getEditor().setAlignment(Pos.CENTER_LEFT);
-        in.getEditor().setFocusTraversable(true);
-        in.setTitle("Person Insert Editor");
-        in.setHeaderText("Insert new Person's name:");
-        Button ok = (Button) in.getDialogPane().lookupButton(ButtonType.OK);
-
-        ok.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent actionEvent) {
-                String fullName = in.getEditor().getText();
-                insertPerson(fullName);
-            }
-        });
-        in.show();
-    }
-
     public void displayTree() {
         graphicsContainer.getChildren().clear();
+        graphicsContainer.getChildren().add(status);
         PersonNode root = pTree.getRoot();
+        if (root == null) return;
+        midX = root.weight * 200 - 50;
         displayHelper(root, 1, midX);
     }
 
     private void displayHelper(PersonNode root, int indent, double posX) {
-        if (root == null || indent > 6) return; // indent > 5 to stop over-sized plot
+        if (root == null || indent > indentLimit) return; // indent > 5 to stop over-sized plot
 
         String col = "#F57F17";
         String col2 = "#039BE5";
@@ -223,13 +254,14 @@ public class MainPage extends Pane {
         if (hex.length() == 1) hex = "0" + hex;
         col = col + hex;
         col2 = col2 + hex;
-        root.getGraphic().setStyle("-fx-background-color: " + col);
+//        root.getGraphic().setStyle("-fx-background-color: " + col);
+        root.setStyle("-fx-background-color: " + col);
 
         if (root.left != null) makeLine(posX, indent, -1, col2);
         if (root.right != null) makeLine(posX, indent, 1, col2);
 
         graphicsContainer.getChildren().add(root);
-        graphicsContainer.setTopAnchor(root, ROW_GAP * indent);
+        graphicsContainer.setTopAnchor(root, ROW_GAP * indent + ROW_OFFSET / 4);
         graphicsContainer.setLeftAnchor(root, posX);
 
         displayHelper(root.left, indent + 1, posX - midX / (Math.pow(2, indent)));
@@ -237,11 +269,13 @@ public class MainPage extends Pane {
     }
 
     private void makeLine(double posX, int indent, int direction, String col) {
+        if (indent > indentLimit - 1) return;
+        double lineOffset = 2;
         posX = posX + COLUMN_OFFSET;
-        double l1Y = ROW_GAP * indent + ROW_OFFSET*2;
+        double l1Y = ROW_GAP * indent + ROW_OFFSET * 2 - lineOffset;
         double lXOffset = midX / (Math.pow(2, indent)) * direction;
-        double l2Y = ROW_GAP * indent + ROW_GAP / 2 + ROW_OFFSET;
-        double l3Y = ROW_GAP * (indent + 1);
+        double l2Y = ROW_GAP * indent + ROW_GAP / 2 + ROW_OFFSET - lineOffset;
+        double l3Y = ROW_GAP * (indent + 1) - lineOffset;
 
         Line l1 = new Line(posX, l1Y, posX, l2Y);
         Line l2 = new Line(posX, l2Y, posX + lXOffset, l2Y);
@@ -259,7 +293,7 @@ public class MainPage extends Pane {
     private HBox loadingZone() {
         HBox toReturn = new HBox();
         surname = false;
-        toReturn.setAlignment(Pos.CENTER);
+
         toReturn.setSpacing(10);
         Label modeLb = new Label("Index by:");
         RadioButton fnRB = new RadioButton("First Name");
@@ -283,15 +317,19 @@ public class MainPage extends Pane {
 
         toReturn.getChildren().addAll(modeLb, snRB, fnRB);
 
+        toReturn.setPrefWidth(960);
+        toReturn.setAlignment(Pos.CENTER_LEFT);
+
         return toReturn;
     }
 
     private void loadUpFile() throws FileNotFoundException {
         pTree = new AVLTreeV1(this);
-// TODO for test       FileChooser fc = new FileChooser();
-//        fc.setTitle("Choose a file to open");
-//        File file = fc.showOpenDialog(primaryStage);
-        File file = new File("mswdev.csv");
+
+        FileChooser fc = new FileChooser();
+        fc.setTitle("Choose a file to open");
+        File file = fc.showOpenDialog(primaryStage);
+//        File file = new File("mswdev.csv");
         Scanner sc = new Scanner(file);
         while (sc.hasNextLine()) {
             String fn = sc.next();
@@ -301,8 +339,8 @@ public class MainPage extends Pane {
             if (surname) pTree.insert(sn, new Person(fn, sn, ++uid, sn, this));
             else pTree.insert(fn, new Person(fn, sn, ++uid, fn, this));
         }
-        pTree.preOrder();
         sc.close();
+        status.setText("Loading Complete.");
         displayTree();
     }
 
@@ -321,19 +359,20 @@ public class MainPage extends Pane {
         Dialog<ButtonType> nodeEditor = new Dialog<>();
 
         PersonNode showing = pTree.search(key);
+        nodeEditor.getDialogPane().setStyle("-fx-background-color: #E8EAF6;" +
+                "-fx-effect: innershadow(gaussian, rgba(0, 0, 0, 0.3), 10, 0.5, 0.0, 0.0)");
 
         nodeEditor.setTitle("PersonNode '%s'".formatted(key.toUpperCase()));
 //        nodeEditor.getDialogPane().setPrefSize(500, 400);
         nodeEditor.initModality(Modality.APPLICATION_MODAL);
         nodeEditor.setResizable(false);
 
-        nodeEditor.setHeaderText("Persons in this Node:");
-
-        StringBuilder content = new StringBuilder();
-        for (MenuItem p : showing.getItems()) {
-            content.append(p + "\n\n");
-        }
-        nodeEditor.setContentText("" + content);
+        Label head = new Label(showing.box.size()+" Person in this Node:");
+        head.setAlignment(Pos.CENTER_LEFT);
+        head.setStyle("-fx-font-size: 16;" +
+                "-fx-background-color: #C5CAE9;" +
+                "-fx-padding: 20;" + "-fx-spacing: 20");
+        nodeEditor.getDialogPane().setHeader(head);
 
         ButtonType delete = new ButtonType("Delete", ButtonBar.ButtonData.OK_DONE);
         nodeEditor.getDialogPane().getButtonTypes().add(delete);
@@ -350,6 +389,18 @@ public class MainPage extends Pane {
             }
         });
 
+        ChoiceBox<MenuItem> cb = new ChoiceBox();
+        cb.setStyle("-fx-background-color: rgba(255, 255, 255, 0)");
+        for (MenuItem p : showing.box.values()) {
+            cb.getItems().add(p);
+        }
+        cb.setValue(cb.getItems().get(0));
+
+        nodeEditor.getDialogPane().setContent(cb);
+
+        ButtonType choose = new ButtonType("Choose", ButtonBar.ButtonData.NEXT_FORWARD);
+        nodeEditor.getDialogPane().getButtonTypes().add(choose);
+
         Optional<ButtonType> opt = nodeEditor.showAndWait();
         opt.ifPresent(new Consumer<ButtonType>() {
             @Override
@@ -357,12 +408,12 @@ public class MainPage extends Pane {
                 if (buttonType == delete) {
                     Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
                     alert.setHeaderText("Remove entire Node?");
+                    setupAlert(alert);
 
                     Button ok = (Button) alert.getDialogPane().lookupButton(ButtonType.OK);
                     ok.setOnAction(new EventHandler<ActionEvent>() {
                         @Override
                         public void handle(ActionEvent actionEvent) {
-                            System.out.println("Remove this Node");
                             removeNode(showing);
                             nodeEditor.close();
                         }
@@ -372,8 +423,17 @@ public class MainPage extends Pane {
                 else if (buttonType == ButtonType.CANCEL) {
                     nodeEditor.close();
                 }
+                else if (buttonType == choose) {
+                    Person p = (Person)cb.getValue();
+                    personDialog(p.getKey(), p.getID());
+                }
             }
         });
+    }
+
+    private void setupAlert(Alert alert) {
+        alert.getDialogPane().setStyle("-fx-background-color: #FF9800;" +
+                "-fx-effect: innershadow(gaussian, rgba(0, 0, 0, 0.3), 10, 0.5, 0.0, 0.0)");
     }
 
     public void personDialog(String key, int ID) {
@@ -381,21 +441,53 @@ public class MainPage extends Pane {
         if (p == null) return;
 
         TextInputDialog pd = new TextInputDialog();
-        pd.getEditor().setPromptText("Modify the Name");
+        pd.getDialogPane().setStyle("-fx-background-color: #E8F5E9;" +
+                "-fx-effect: innershadow(gaussian, rgba(0, 0, 0, 0.3), 10, 0.5, 0.0, 0.0)");
+        pd.initModality(Modality.APPLICATION_MODAL);
+        pd.getEditor().setPromptText("Enter New Name");
         pd.getEditor().setAlignment(Pos.CENTER_LEFT);
-        pd.getEditor().setFocusTraversable(false);
         pd.setTitle("Person Info");
-        pd.setHeaderText("Person Info Panel:");
+
+        final BooleanProperty firstTime = new SimpleBooleanProperty(true);
+        pd.getEditor().focusedProperty().addListener((observable,  oldValue,  newValue) -> {
+            if(newValue && firstTime.get()){
+                pd.getDialogPane().requestFocus(); // Delegate the focus to container
+                firstTime.setValue(false); // Variable value changed for future references
+            }
+        });
+
+        Label head = new Label("Person Info:\n" + "Remove / Edit");
+        head.setAlignment(Pos.CENTER_LEFT);
+        head.setStyle("-fx-font-size: 16;" +
+                "-fx-background-color: #C8E6C9;" +
+                "-fx-padding: 20;" + "-fx-spacing: 20");
+        pd.getDialogPane().setHeader(head);
+
         pd.setContentText(p + "\n");
 
         Button modify = (Button) pd.getDialogPane().lookupButton(ButtonType.OK);
-        modify.setText("Modify");
+        modify.setText("Edit");
         modify.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent actionEvent) {
-                remove(key, p);
                 String fullName = pd.getEditor().getText();
-                insertPerson(fullName);
+                if (fullName == null || !fullName.contains(" ")) return;
+
+                Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+                alert.getDialogPane().setStyle("-fx-background-color: #9CCC65;" +
+                        "-fx-effect: innershadow(gaussian, rgba(0, 0, 0, 0.3), 10, 0.5, 0.0, 0.0)");
+                alert.setHeaderText("Edit Entry: " + p + "\n to: " + fullName);
+
+                Button ok = (Button) alert.getDialogPane().lookupButton(ButtonType.OK);
+                ok.setOnAction(new EventHandler<ActionEvent>() {
+                    @Override
+                    public void handle(ActionEvent actionEvent) {
+                        remove(key, p);
+                        String fullName = pd.getEditor().getText();
+                        insertPerson(fullName);
+                    }
+                });
+                alert.show();
             }
         });
 
@@ -405,11 +497,59 @@ public class MainPage extends Pane {
         remove.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent actionEvent) {
-                remove(key, p);
+
+                Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+                alert.setHeaderText("Remove Entry: " + p);
+                setupAlert(alert);
+
+                Button ok = (Button) alert.getDialogPane().lookupButton(ButtonType.OK);
+                ok.setOnAction(new EventHandler<ActionEvent>() {
+                    @Override
+                    public void handle(ActionEvent actionEvent) {
+                        remove(key, p);
+                    }
+                });
+                alert.show();
             }
         });
 
         pd.show();
+    }
+
+    private void insertDialog() {
+        TextInputDialog in = new TextInputDialog();
+        in.getDialogPane().setStyle("-fx-background-color: #E8F5E9;" +
+                "-fx-effect: innershadow(gaussian, rgba(0, 0, 0, 0.3), 10, 0.5, 0.0, 0.0)");
+        in.getEditor().setPromptText("Enter the Name");
+        in.getEditor().setAlignment(Pos.CENTER_LEFT);
+        BooleanProperty firstTime = new SimpleBooleanProperty(true);
+        in.getEditor().focusedProperty().addListener((observable,  oldValue,  newValue) -> {
+            if(newValue && firstTime.get()){
+                in.getDialogPane().requestFocus(); // Delegate the focus to container
+                firstTime.setValue(false); // Variable value changed for future references
+            }
+        });
+
+        in.setTitle("Person Insert Editor");
+
+        Label head = new Label("Insert new Person:");
+        head.setAlignment(Pos.CENTER_LEFT);
+        head.setStyle("-fx-font-size: 16;" +
+                "-fx-background-color: #C8E6C9;" +
+                "-fx-padding: 20;" + "-fx-spacing: 20");
+        in.getDialogPane().setHeader(head);
+
+        Button ok = (Button) in.getDialogPane().lookupButton(ButtonType.OK);
+
+        ok.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent actionEvent) {
+                String fullName = in.getEditor().getText();
+                if (fullName == null || !fullName.contains(" ")) return;
+                insertPerson(fullName);
+            }
+        });
+        in.show();
     }
 
     private void insertPerson(String fullName) {

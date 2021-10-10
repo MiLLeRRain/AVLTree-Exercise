@@ -221,14 +221,14 @@ public class AVLTreeV1{ //<PersonNode extends Comparable<? super PersonNode>>
             if (direction < 0) { // Enter left branch
                 pn.left = insert(pn.left, key);
                 // If left branch is too heavy, deal with LLR or LRR situation
-                if (weight(pn.left) - weight(pn.right) == 2) {
+                if (weight(pn.left) - weight(pn.right) > 1) {
                     if (key.compareTo(pn.left.key) < 0) pn = LLRotation(pn);
                     else pn = LRRotation(pn);
                 }
             } else if (direction > 0) { // Enter right branch
                 pn.right = insert(pn.right, key);
                 // If right branch is too heavy, deal with RRR or RLR situation
-                if (weight(pn.right) - weight(pn.left) == 2) {
+                if (weight(pn.right) - weight(pn.left) > 1) {
                     if (key.compareTo(pn.right.key) > 0) pn = RRRotation(pn);
                     else pn = RLRotation(pn);
                 }

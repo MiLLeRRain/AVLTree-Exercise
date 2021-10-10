@@ -7,6 +7,7 @@ class Person extends MenuItem {
     private String fullName;
     private String name;
     private String surname;
+
     private String key;
     private final int ID;
     private MainPage mp;
@@ -41,6 +42,10 @@ class Person extends MenuItem {
 
     public int getID() {
         return ID;
+    }
+
+    public String getKey() {
+        return key;
     }
 
     public void setName(String name) {
