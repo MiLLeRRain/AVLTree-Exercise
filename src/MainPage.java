@@ -24,63 +24,55 @@ import java.util.Scanner;
 import java.util.function.Consumer;
 
 /**
- * A tabPane, main interface for user,
- * Should contain function buttons: Load(load from file), CleanPane,
- * Choose index pattern(either by first name or surname),
- * Edit the PersonNode(MenuButton) and the Person(MenuItem), Add new Person, Remove old Person,
- * Search for Person(1. search the PersonNode, by name or surname, 2. search the person with id),
- * <p>
- * TODO Animation of the tree re-balancing?
+ * A tabPane, main interface for user. This class process a Tree structure to store all data.
+ * The PersonNode is the Node on the tree, a class to hold all Person objects with particular key pattern.
+ *
  */
 public class MainPage extends Pane {
 
-    /**
-     * Main structure to hold all data
-     */
+    /** Tree structure to hold all data */
     private AVLTreeV1 pTree;
 
+    /** It is the stage passes from Main Class. */
     private Stage primaryStage;
 
+    /** A VBox holds all main UI elements */
     private VBox mainContainer;
 
+    /** The AnchorPane to anchor all the tree Nodes and the ScrollPane to hold it */
     private static AnchorPane graphicsContainer;
+    private ScrollPane sp;
 
+    /** The Menu Box and the indexing pattern chooser */
     private HBox menu;
+    private HBox loadingPattern;
 
+    /** Common attributes for the UI elements */
     private static int uid = 80000;
-
     private static final int BUTTON_WIDTH = 80;
-
     private static final double COLUMN_OFFSET = 36;
-
     private static final double ROW_OFFSET = 20;
-
     private static final double ROW_GAP = 60;
-
     private static double midX;
 
+    /** Indent limit to help control the plot depth */
     private int indentLimit = 6;
 
-    private HBox loadingPattern;
-    /**
-     * Booleans
-     */
+    /** Booleans */
     private boolean surname;
     private boolean loaded;
 
-    /**
-     * Buttons
-     */
+    /** Buttons */
     private Button loadBtn;
     private Button displayBtn;
     private Button insertBtn;
     private Button cleanBtn;
     private MenuButton print;
 
+    /** Status display label for the user */
     private Label status;
 
-
-
+    /** Constructor */
     public MainPage(Stage stage) {
         pTree = new AVLTreeV1(this);
         primaryStage = stage;
@@ -88,15 +80,13 @@ public class MainPage extends Pane {
     }
 
     private void initUI() {
-        ScrollPane sp = new ScrollPane();
+        sp = new ScrollPane();
         sp.prefWidthProperty().bind(this.widthProperty());
         sp.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
 
         mainContainer = new VBox();
         mainContainer.prefWidthProperty().bind(this.widthProperty());
         mainContainer.prefHeightProperty().bind(this.heightProperty());
-
-
 
         graphicsContainer = new AnchorPane();
         setupGraphicContainer();
@@ -110,6 +100,7 @@ public class MainPage extends Pane {
         this.getChildren().add(mainContainer);
     }
 
+    /** Set up the Graphic Pane */
     private void setupGraphicContainer() {
         status = new Label("Press Load Button to load.");
         status.setStyle("-fx-background-color: #ffffff00");
@@ -122,11 +113,11 @@ public class MainPage extends Pane {
         graphicsContainer.setLeftAnchor(status, 10.0);
     }
 
+    /** Set up the menu */
     private HBox setMenu() {
         HBox toReturn = new HBox();
         toReturn.setEffect(new InnerShadow());
         toReturn.setPadding(new Insets(10));
-// TODO style change later      toReturn.setPrefHeight(100);
         toReturn.prefWidthProperty().bind(mainContainer.widthProperty());
         toReturn.setStyle("-fx-background-color: #039BE5;" + "-fx-alignment: CENTER_LEFT");
 
@@ -147,15 +138,51 @@ public class MainPage extends Pane {
     }
 
     /**
+     * Set up the loading part of the menu
+     * @return a HBox with all features set
+     */
+    private HBox loadingZone() {
+        HBox toReturn = new HBox();
+        surname = false;
+
+        toReturn.setSpacing(10);
+        Label modeLb = new Label("Index by:");
+        RadioButton fnRB = new RadioButton("First Name");
+        RadioButton snRB = new RadioButton("Surname");
+        snRB.selectedProperty().addListener(new ChangeListener<Boolean>() {
+            @Override
+            public void changed(ObservableValue<? extends Boolean> observableValue, Boolean aBoolean, Boolean t1) {
+                surname = true;
+            }
+        });
+        fnRB.selectedProperty().addListener(new ChangeListener<Boolean>() {
+            @Override
+            public void changed(ObservableValue<? extends Boolean> observableValue, Boolean aBoolean, Boolean t1) {
+                surname = false;
+            }
+        });
+        ToggleGroup tg = new ToggleGroup();
+        snRB.setToggleGroup(tg);
+        fnRB.setToggleGroup(tg);
+        tg.selectToggle(fnRB);
+
+        toReturn.getChildren().addAll(modeLb, snRB, fnRB);
+
+        toReturn.setPrefWidth(960);
+        toReturn.setAlignment(Pos.CENTER_LEFT);
+
+        return toReturn;
+    }
+
+    /**
      * Place to hold buttons with useful features
      *
-     * @return
+     * @return the buttonbar with all buttons set
      */
     private ButtonBar buttonsLoad() {
         ButtonBar toReturn = new ButtonBar();
 
         setupLoadBtn();
-//        setupDisplayBtn();
         setupInsertBtn();
         setupCleanBtn();
         setupPrintBtn();
@@ -235,6 +262,9 @@ public class MainPage extends Pane {
         });
     }
 
+    /**
+     * Display method
+     */
     public void displayTree() {
         graphicsContainer.getChildren().clear();
         graphicsContainer.getChildren().add(status);
@@ -244,6 +274,12 @@ public class MainPage extends Pane {
         displayHelper(root, 1, midX);
     }
 
+    /**
+     * Recursive display helper
+     * @param root the current processing Node
+     * @param indent the depth indicator
+     * @param posX the plot X position
+     */
     private void displayHelper(PersonNode root, int indent, double posX) {
         if (root == null || indent > indentLimit) return; // indent > 5 to stop over-sized plot
 
@@ -268,6 +304,9 @@ public class MainPage extends Pane {
         displayHelper(root.right, indent + 1, posX + midX / (Math.pow(2, indent)));
     }
 
+    /**
+     * Line maker
+     */
     private void makeLine(double posX, int indent, int direction, String col) {
         if (indent > indentLimit - 1) return;
         double lineOffset = 2;
@@ -290,46 +329,16 @@ public class MainPage extends Pane {
         graphicsContainer.getChildren().addAll(l1, l2, l3);
     }
 
-    private HBox loadingZone() {
-        HBox toReturn = new HBox();
-        surname = false;
-
-        toReturn.setSpacing(10);
-        Label modeLb = new Label("Index by:");
-        RadioButton fnRB = new RadioButton("First Name");
-        RadioButton snRB = new RadioButton("Surname");
-        snRB.selectedProperty().addListener(new ChangeListener<Boolean>() {
-            @Override
-            public void changed(ObservableValue<? extends Boolean> observableValue, Boolean aBoolean, Boolean t1) {
-                surname = true;
-            }
-        });
-        fnRB.selectedProperty().addListener(new ChangeListener<Boolean>() {
-            @Override
-            public void changed(ObservableValue<? extends Boolean> observableValue, Boolean aBoolean, Boolean t1) {
-                surname = false;
-            }
-        });
-        ToggleGroup tg = new ToggleGroup();
-        snRB.setToggleGroup(tg);
-        fnRB.setToggleGroup(tg);
-        tg.selectToggle(fnRB);
-
-        toReturn.getChildren().addAll(modeLb, snRB, fnRB);
-
-        toReturn.setPrefWidth(960);
-        toReturn.setAlignment(Pos.CENTER_LEFT);
-
-        return toReturn;
-    }
-
+    /**
+     * File load method, read all person info and create the Person, then insert into the Tree.
+     * @throws FileNotFoundException
+     */
     private void loadUpFile() throws FileNotFoundException {
         pTree = new AVLTreeV1(this);
 
         FileChooser fc = new FileChooser();
         fc.setTitle("Choose a file to open");
         File file = fc.showOpenDialog(primaryStage);
-//        File file = new File("mswdev.csv");
         Scanner sc = new Scanner(file);
         while (sc.hasNextLine()) {
             String fn = sc.next();
@@ -344,17 +353,30 @@ public class MainPage extends Pane {
         displayTree();
     }
 
+    /**
+     * Person remove method
+     * @param key the key of the PersonNode to operate on
+     * @param p the Person to be removed
+     */
     public void remove(String key, Person p) {
         pTree.remove(key, p);
         displayTree();
     }
 
+    /**
+     * PersonNode remove method
+     * @param pn the PersonNode to be removed
+     */
     public void removeNode(PersonNode pn) {
         pTree.removeNode(pn);
         displayTree();
     }
 
-
+    /**
+     * A Dialog for PersonNode, contains all Persons in this Node, can access the Person Dialog from here.
+     * Remove button to delete this Node.
+     * @param key the key of this PersonNode
+     */
     public void nodeDialog(String key) {
         Dialog<ButtonType> nodeEditor = new Dialog<>();
 
@@ -363,7 +385,6 @@ public class MainPage extends Pane {
                 "-fx-effect: innershadow(gaussian, rgba(0, 0, 0, 0.3), 10, 0.5, 0.0, 0.0)");
 
         nodeEditor.setTitle("PersonNode '%s'".formatted(key.toUpperCase()));
-//        nodeEditor.getDialogPane().setPrefSize(500, 400);
         nodeEditor.initModality(Modality.APPLICATION_MODAL);
         nodeEditor.setResizable(false);
 
@@ -431,11 +452,20 @@ public class MainPage extends Pane {
         });
     }
 
+    /**
+     * A helper to set up the alert panel UI
+     * @param alert the Alert panel to be set
+     */
     private void setupAlert(Alert alert) {
         alert.getDialogPane().setStyle("-fx-background-color: #FF9800;" +
                 "-fx-effect: innershadow(gaussian, rgba(0, 0, 0, 0.3), 10, 0.5, 0.0, 0.0)");
     }
 
+    /**
+     * The Dialog for Person, including remove and edit.
+     * @param key the key of the PersonNode it is in
+     * @param ID the Person unique ID
+     */
     public void personDialog(String key, int ID) {
         Person p = pTree.search(key).getPerson(ID);
         if (p == null) return;
@@ -516,6 +546,9 @@ public class MainPage extends Pane {
         pd.show();
     }
 
+    /**
+     * The Dialog panel for insert new Person
+     */
     private void insertDialog() {
         TextInputDialog in = new TextInputDialog();
         in.getDialogPane().setStyle("-fx-background-color: #E8F5E9;" +
@@ -552,6 +585,10 @@ public class MainPage extends Pane {
         in.show();
     }
 
+    /**
+     * Helper method to insert Person
+     * @param fullName the full name of the new inserted Person
+     */
     private void insertPerson(String fullName) {
         String[] s = fullName.split("\\s+");
         String fnKey = s[0];

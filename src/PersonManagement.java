@@ -39,9 +39,5 @@ public class PersonManagement extends Application {
 
     }
 
-    public static Pane getRoot() {
-        return root;
-    }
-
     public static void main(String[] args) {launch(args);}
 }

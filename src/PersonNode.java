@@ -26,6 +26,13 @@ class PersonNode extends Button implements Comparable<PersonNode> {
     PersonNode left;
     PersonNode right;
 
+    /**
+     * Constructor
+     * @param key the key allocated by system
+     * @param l the left Node
+     * @param r the right Node
+     * @param mp the MainPage UI
+     */
     public PersonNode(String key, PersonNode l, PersonNode r, MainPage mp) {
         this.key = key;
         this.box = new HashMap<>();
@@ -34,10 +41,7 @@ class PersonNode extends Button implements Comparable<PersonNode> {
         this.left = l;
         this.right = r;
         this.weight = 0; // Empty Root node height = 0
-//        this.setPrefWidth(BUTTON_WIDTH);
         this.setAlignment(Pos.CENTER);
-//        this.edit = buttonSet();
-//        this.setGraphic(edit); // Put the button into MenuButton panel
         buttonSetup();
         this.setStyle("-fx-background-color: rgba(255, 255, 255, 0);" + "-fx-selection-bar: #ffffff00;");
     }

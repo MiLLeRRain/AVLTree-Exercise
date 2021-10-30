@@ -2,6 +2,10 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.control.MenuItem;
 
+/**
+ * The Person Class
+ * It contains the name, the key, unique ID and the MainPage which is holding this object.
+ */
 class Person extends MenuItem {
 
     private String fullName;
@@ -12,6 +16,14 @@ class Person extends MenuItem {
     private final int ID;
     private MainPage mp;
 
+    /**
+     * Constructor
+     * @param fn the first name
+     * @param sn the surname
+     * @param uid the unique ID
+     * @param key the key allocated by the system
+     * @param mp the MainPage UI
+     */
     public Person(String fn, String sn, int uid, String key, MainPage mp) {
         this.name = fn;
         this.surname = sn;
@@ -23,6 +35,9 @@ class Person extends MenuItem {
         setupAction();
     }
 
+    /**
+     * The action while the Dialog of Person needs to be activated.
+     */
     private void setupAction() {
         this.setOnAction(new EventHandler<ActionEvent>() {
             @Override
